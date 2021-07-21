@@ -1,6 +1,6 @@
 # LLVM-TASKS!
 
-## Write an LLVM pass that computes an approximated version of the arithmetic intensity of a given function using its LLVM representation. 
+## Write a LLVM pass that computes an approximated version of the arithmetic intensity of a given function using its LLVM representation. 
 
 #### Assumptions :
 + Only add, sub, mul and div operations are considered as the arithmetic operations.

@@ -1,0 +1,130 @@
+Writing llvm pass
+
+Types of Passes
+Pass is an instance of LLVM class Pass.
+
+[Inheritance of Passes]
+Defined in : /llvm-project/llvm/include/llvm/Pass.h
+llvm::Pass
+	llvm::BasicBlockPass
+	llvm::ModulePass
+	llvm::RegionPass
+	llvm::CallGraphSCCPass
+	llvm::LoopPass
+	llvm::FunctionPass
+	
+/llvm-project/llvm/lib -> Contain all the in buit passes
+
+
+/llvm-project/llvm/lib/Transform
+1.Make a directory to write a new pass: Ex. Task
+	Inside Task directory make a new file : task.cpp
+	[Details written inside task.cpp
+		Include -> 	/Pass.h 
+				/IR/Function.h
+				/Support/raw_ostream.h
+	
+		{This namespace is defined in Pass.h}
+		using namespace llvm;
+	]
+	
+2.Wrap "Task"[inherited from FunctionPass] class inside namespace
+	Create a constructor inside that and pass static char "ID" to it.
+	
+3.Now we will override runOnFunction(Function &F)!
+	Analysis of what runOnFunction is :
+		The starting point of every function pass
+		When the pass is getting called by the optimizer, what will happen is control will get the path from this overridden virtual function.
+		
+	Extra : Similar case to write a ModulePass ->
+	class Demo : public ModulePass{
+		static char ID;
+		Task() : ModulePass(ID) {}
+		bool runOnModule(Module &F) {}
+	}
+	
+	runOnFunction -> Pure Virtual Function.[defined in Pass.h inside FunctionPass inherited from Pass]
+	Desc. -> Virtual method overridden by subclasses to do the per-function processing of the pass.
+---------------------------------------------------------------------------------------------------------------------------
+	> What is a pure virtual function?
+	  Virtual function for which we need not write any function definition &
+	  only we have to declare it.[declared by assigning 0 in the declaration.]
+	> We must override this function to avoid making derived class abstract too.
+	> useful when the implementation of all functions cannot be provided in a base class bcoz we don't know the implementation.
+---------------------------------------------------------------------------------------------------------------------------5.Make everything public as by default it will be private.
+6.Need to override runOnFunction ->
+	> what if we don't override, what will happen?
+		it will still work!
+	> "override" - is just a flag to tell the compiler that we are overriding the function.
+	
+7.IMP step : Get function name from llvm function	[use doxygen mostly]
+llvm::Function Class Reference [Refer diagram]  
+Search for required function from list of API!
+[keep in mind about getters & setters definations]
+* getName() -> return a constant reference to the value's name
+------------------------------------------------------------------
+bool runOnFunction(Function &F) override {
+                        auto name = F.getName();
+                        errs() << "Hello From: " << name << "\n";
+                        return false;
+                }
+----------------------------------------------------------------
+What above snippet is doing? 
+Iterate over every function, print the name of the function & get out...
+Why "return false"? -> 
+This is just an analysis pass & we did not change anything so we are just passing on the info to the pass manager(who is going to schedule the pass)!
+[Recollect concept from get: opt -> what we have is a sequence of passes.
+After a transformation analysis info might become invalid.
+So we want to make sure information gets preserved even after adding another pass.]
+
+8.Now we have to register this pass. -> Instantiate a static object
+	> Class Template function & create static object now!
+	> Instantiate the class template 
+	RegisterPass -> is a predefined constructor![]
+	
+	Arguments 
+		1st -> command line argument with which we are going to identify the pass in opt when we call.
+		2nd -> Description of pass [will get in --help]
+
+9.Now we need to compile the pass.
+	>LLVM uses which build system ? -> cmake based
+	>first we have to inform that we have created a pass. Create CMakeListst.txt & add pass! 
+	add_llvm_library(task MODULE task.cpp)
+
+10.Now as we have added a subdirectory into the parent directory.
+	We need to mention that in the "CMakeList.txt" file of Transform dir.!
+	add_subdirectory(Task)
+
+--------------------------------Commands_Info--------------------------------------------------
+1.Build :[ /llvm-project/build ]
+	>cmake ../llvm/
+
+2.Compile :
+	>make task
+	[will generate task.so file & location : /lib]
+
+3.Generate ll file:
+	>./bin/clang -S -emit-llvm -Xclang -disable-O0-optnone test.c -o test.ll
+
+4.To check if our pass description is present in --help :
+	./bin/opt -load ./lib/task.so -task -help
+
+5.Execution of pass "task":[It should print function names present in the pass!]
+	>./bin/opt -load ./lib/task.so -task test.ll 
+	[Output:
+	Hello From: foo
+	Hello From: main]
+
+"Pass infrastructure in llvm is taken for granted! Vey modular structure & everything is properly bundled together."
+
+
+
+
+		
+
+
+
+
+	
+	
+
