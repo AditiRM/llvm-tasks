@@ -1,0 +1,73 @@
+----------------------------------------------Basic Docker Utilities----------------------------------
+ 
+Pulling an image from dockerhub: docker pull <image-name>
+
+Listing all images: docker images
+
+Deploy a container for an image <image-name>: sudo docker run -itd --name <container-name/ container-id> <image-name> /bin/bash
+
+
+Starting bash cmd prompt for a container: sudo docker exec -it <container-name/ container-id> bash
+
+Listing all containers: docker container ls -a
+
+Starting an already created container: docker start <container name/ container-id> 
+
+Stopping a container: docker stop <container name/ container-id>
+
+Attach to a running container: docker container attach <container name/ container-id>
+
+Detach from a running container: CTRL + P, CTRL + Q
+
+Size of active container: docker ps --size
+
+Summary of docker image: docker system df
+
+Copying a file to a container: docker cp  <source path> <container name/ container-id>:<destination path>
+
+Copying a file from a container: docker cp <container name/ container-id>:<path to file> <destination path>
+
+
+-------------------------------------------Testing the working of tools--------------------------
+
+1.Tool: Clang
+  cmd: $ cd llvm-project/build/bin 
+           $ ./clang --version 
+  Output: 
+    clang version 10.0.1 
+    Target: x86_64-unknown-linux-gnu
+    Thread model: posix
+    InstalledDir: ####
+
+
+2.Tool: Opt:
+  cmd:  $ cd llvm-project/build/bin 
+            $ ./opt --version
+  Output:
+   LLVM (http://llvm.org/):
+   LLVM version 10.0.1
+   DEBUG build with assertions.
+   Default target: x86_64-unknown-linux-gnu
+   Host CPU: #####
+
+
+3. Tool: LLC 
+              cmd:  $ cd llvm-project/build/bin 
+            $ ./llc --version
+              Output:
+                  LLVM version 10.0.1
+  	      DEBUG build with assertions.
+ 	      Default target: x86_64-unknown-linux-gnu
+                  Host CPU: #####
+
+                  Registered Targets: #####
+     
+4. MLIR
+   cmd:  $ cd /llvm-project/mlir/test/AffineOps
+     	 $ /llvm-project/build/bin/mlir-opt inlining.mlir -inline -mlir-disable-inline-simplify
+	Output:
+        	  module {
+			  func @func_with_affine_ops(%arg0: index) {
+			  %c200 = constant 200 : index
+		 	  affine.for %arg1 = 1 to 10 { …...
+
