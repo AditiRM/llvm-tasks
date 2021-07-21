@@ -51,7 +51,9 @@ llvm::Pass
 	  only we have to declare it.[declared by assigning 0 in the declaration.]
 	> We must override this function to avoid making derived class abstract too.
 	> useful when the implementation of all functions cannot be provided in a base class bcoz we don't know the implementation.
----------------------------------------------------------------------------------------------------------------------------5.Make everything public as by default it will be private.
+---------------------------------------------------------------------------------------------------------------------------
+5.Make everything public as by default it will be private.
+
 6.Need to override runOnFunction ->
 	> what if we don't override, what will happen?
 		it will still work!
