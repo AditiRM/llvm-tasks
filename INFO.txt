@@ -117,7 +117,85 @@ So we want to make sure information gets preserved even after adding another pas
 	Hello From: foo
 	Hello From: main]
 
-"Pass infrastructure in llvm is taken for granted! Vey modular structure & everything is properly bundled together."
+--------------------------------------------------------------------------------------------------------------------
+VIMP :
+Pass infrastructure in llvm is taken for granted!
+Vey modular structure & everything is properly bundled together
+
+Doubt: Can we write passes other than Transform pass? like analysis, SSA 
+-> Yes, ofc we can! Check out dir inside /lib folder & read about some predefined passes.
+Ex. Scalar, IPO
+
+Doubt: How to find required header files for specific requirements for writing a pass?
+-> Go to llvm::Function Class Reference [header files are mentioned at the top of the Doxygen documentation]
+---------------------------------------------------------------------------------------------------------------------
+
+6. >./bin/opt -load ./lib/task.so -mem2reg -task -licm --debug-pass=Structure test.ll
+Output:
+[Pass Arguments:  -targetlibinfo -tti -targetpassconfig -assumption-cache-tracker -domtree -mem2reg -task -domtree -basicaa -aa -memoryssa -loops -loop-simplify -lcssa-verification -lcssa -scalar-evolution -licm -verify
+Target Library Information
+Target Transform Information
+Target Pass Configuration
+Assumption Cache Tracker
+  ModulePass Manager
+    FunctionPass Manager
+      Dominator Tree Construction
+      Promote Memory to Register
+      This is a task pass.
+      Dominator Tree Construction
+      Basic Alias Analysis (stateless AA impl)
+      Function Alias Analysis Results
+      Memory SSA
+      Natural Loop Information
+      Canonicalize natural loops
+      LCSSA Verifier
+      Loop-Closed SSA Form Pass
+      Scalar Evolution Analysis
+      Loop Pass Manager
+        Loop Invariant Code Motion
+      Module Verifier
+Hello From: foo
+Hello From: main]
+
+------------------------------------------------------------------------------------------------------------
+Observation: So here we can see how the passes are scheduled by the Pass Manager!
+
+Common Passes (present for all)-> [Boiler plate set of passes that would run for all the cases.]
+Target Library Information
+Target Transform Information
+Target Pass Configuration
+
+How Pass Manager Works ?
+FunctionPass Manager -> will schedule all the passes!
+[Arghhh WTF is happening over here. Let's break down line by line.]
+
+1st : "Dominator Tree Construction" will get scheduled.
+2nd : "Promote Memory to Register" will get scheduled after that.
+[For SSAing the code, mem to Reg pass was using dominator tree, therefore it got scheduled first!]
+3rd : Now we will land our "task" pass!!!
+
+4th : Now for licm[flag that we have added while running]  again "dominator" pass will get scheduled
+5th : Now some form of Alias analysis & Loop passes that were preread by licm will get scheduled.
+
+		Basic Alias Analysis (stateless AA impl)
+      	Function Alias Analysis Results
+      	Memory SSA
+      	Natural Loop Information
+      	Canonicalize natural loops
+      	LCSSA Verifier
+      	Loop-Closed SSA Form Pass
+6th : licm will schedule "Loop Pass Manager"
+7th : "Module Verifier" pass will get scheduled by llvm-opt after that at the end!
+
+VVVIMP :
+Finally what happened is, as we know that licm is a Transformation pass.
+So, after a transformation pass, llvm-opt scheduled a "Verifier Pass".
+-> This will check if all the basic transformed IR obeys the basic scenario! 
+
+Think about this: IR is a program, a way of expressing high-level code. This program will have a set of semantics(rules) & this verifier will check if those semantics are getting obeyed. That's it!!!
+---------------------------------------------------------------------------------------------------------------------
+
+Now let's play around with this task pass.
 
 
 
